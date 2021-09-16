@@ -5,6 +5,7 @@ import com.copy.Copy;
 public class SudokuGame {
     //    private final boolean gameState;
     private final byte[][] grid;
+    private Tuple<Integer, Integer> lastPosition;
 
     public static final byte GRID_BOUNDARY = 9;
 
@@ -23,11 +24,86 @@ public class SudokuGame {
                 {1, 2, 0, 0, 0, 7, 4, 0, 0},
                 {0, 4, 9, 2, 0, 6, 0, 0, 7}
         };
+        lastPosition = new Tuple<>(0, 0);
 //        grid = new byte[GRID_BOUNDARY][GRID_BOUNDARY];
     }
 
     public byte[][] getCopyOfGrid() {
         return Copy.deepCopy(grid);
+    }
+
+    private static record Tuple<X, Y>(X row, Y col) {
+    }
+
+    private Tuple<Integer, Integer> findEmpty() {
+        for (int i = lastPosition.row; i < GRID_BOUNDARY; i++) {
+            for (int j = i == lastPosition.row ? lastPosition.col : 0; j < GRID_BOUNDARY; j++) {
+                if (grid[i][j] == 0) {
+                    return new Tuple<>(i, j); // row, col
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isValid(byte number, Tuple<Integer, Integer> position) {
+        // Check row
+        for (byte i = 0; i < GRID_BOUNDARY; i++) {
+            if (position.col != i && grid[position.row][i] == number) {
+                return false;
+            }
+        }
+
+        // Check column
+        for (byte i = 0; i < GRID_BOUNDARY; i++) {
+            if (position.row != i && grid[i][position.col] == number) {
+                return false;
+            }
+        }
+
+        // Check cubes
+        final int boxX = position.col / 3;
+        final int boxY = position.row / 3;
+
+        final int iStart = boxY * 3;
+        final int iEnd = iStart + 3;
+        final int jStart = boxX * 3;
+        final int jEnd = jStart + 3;
+
+        for (int i = iStart; i < iEnd; i++) {
+            for (int j = jStart; j < jEnd; j++) {
+                if (i != position.row && j != position.col && grid[i][j] == number) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public boolean solve() {
+        // Base case: If all positions are filled up, the grid must have been solved
+        final Tuple<Integer, Integer> position = findEmpty();
+        if (position == null) {
+            return true;
+        }
+
+        lastPosition = position;
+        for (byte num = 1; num <= GRID_BOUNDARY; num++) {
+            if (isValid(num, position)) {
+                grid[position.row][position.col] = num;
+
+                if (solve()) {
+                    return true;
+                }
+
+                // If it wasn't solved and it backtracks to here
+                grid[position.row][position.col] = 0;
+                lastPosition = position;
+            }
+        }
+
+        return false;
     }
 
     @Override
@@ -63,9 +139,15 @@ public class SudokuGame {
         System.out.println(sudokuGame);
         System.out.println();
 
+        // Testing that the copy is deep (not shallow)
         final byte[][] copy = sudokuGame.getCopyOfGrid();
         copy[0][0] = 78;
 
+        System.out.println(sudokuGame);
+        System.out.println();
+
+        // Testing the solve method
+        sudokuGame.solve();
         System.out.println(sudokuGame);
     }
 }
