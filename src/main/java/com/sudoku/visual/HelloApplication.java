@@ -1,4 +1,4 @@
-package com.sudoku.sudokusolver;
+package com.sudoku.visual;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

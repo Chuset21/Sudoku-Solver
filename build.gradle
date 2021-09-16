@@ -23,8 +23,8 @@ tasks.withType(JavaCompile) {
 }
 
 application {
-    mainModule = 'com.sudoku.sudokusolver'
-    mainClass = 'com.sudoku.sudokusolver.HelloApplication'
+    mainModule = 'com.sudoku.visual'
+    mainClass = 'com.sudoku.visual.HelloApplication'
 }
 
 javafx {
