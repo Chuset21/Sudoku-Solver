@@ -3,7 +3,6 @@ package com.sudoku.util;
 import com.copy.Copy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
