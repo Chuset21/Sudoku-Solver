@@ -3,9 +3,8 @@ package com.sudoku.util;
 import com.copy.Copy;
 
 public class SudokuGame {
-    //    private final boolean gameState;
     private final byte[][] grid;
-    private Tuple<Integer, Integer> lastPosition;
+    private Tuple<Byte, Byte> lastPosition;
 
     public static final byte GRID_BOUNDARY = 9;
 
@@ -24,8 +23,7 @@ public class SudokuGame {
                 {1, 2, 0, 0, 0, 7, 4, 0, 0},
                 {0, 4, 9, 2, 0, 6, 0, 0, 7}
         };
-        lastPosition = new Tuple<>(0, 0);
-//        grid = new byte[GRID_BOUNDARY][GRID_BOUNDARY];
+        lastPosition = new Tuple<>((byte) 0, (byte) 0);
     }
 
     public byte[][] getCopyOfGrid() {
@@ -35,9 +33,9 @@ public class SudokuGame {
     private static record Tuple<X, Y>(X row, Y col) {
     }
 
-    private Tuple<Integer, Integer> findEmpty() {
-        for (int i = lastPosition.row; i < GRID_BOUNDARY; i++) {
-            for (int j = i == lastPosition.row ? lastPosition.col : 0; j < GRID_BOUNDARY; j++) {
+    private Tuple<Byte, Byte> findEmpty() {
+        for (byte i = lastPosition.row; i < GRID_BOUNDARY; i++) {
+            for (byte j = i == lastPosition.row ? lastPosition.col : 0; j < GRID_BOUNDARY; j++) {
                 if (grid[i][j] == 0) {
                     return new Tuple<>(i, j); // row, col
                 }
@@ -46,7 +44,7 @@ public class SudokuGame {
         return null;
     }
 
-    private boolean isValid(byte number, Tuple<Integer, Integer> position) {
+    private boolean isValid(byte number, Tuple<Byte, Byte> position) {
         // Check row
         for (byte i = 0; i < GRID_BOUNDARY; i++) {
             if (position.col != i && grid[position.row][i] == number) {
@@ -83,7 +81,7 @@ public class SudokuGame {
 
     public boolean solve() {
         // Base case: If all positions are filled up, the grid must have been solved
-        final Tuple<Integer, Integer> position = findEmpty();
+        final Tuple<Byte, Byte> position = findEmpty();
         if (position == null) {
             return true;
         }
