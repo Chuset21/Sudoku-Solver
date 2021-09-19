@@ -172,12 +172,11 @@ public class SudokuGame {
 
     private boolean isUnique(byte[][] grid) {
         resetLastPosition();
-
-        hasUniqueSolution(getCopyOfGrid(grid));
-        final boolean result = solutionNum == 1;
         solutionNum = 0;
 
-        return result;
+        hasUniqueSolution(getCopyOfGrid(grid));
+
+        return solutionNum == 1;
     }
 
     // Return value is only used to exit the recursion
