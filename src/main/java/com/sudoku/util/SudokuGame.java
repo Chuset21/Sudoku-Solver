@@ -19,7 +19,7 @@ public class SudokuGame {
     private byte solutionNum;
 
     public static final byte GRID_BOUNDARY = 9;
-    private static final List<Byte> NUMBERS = new ArrayList<>(9);
+    private static final List<Byte> NUMBERS = new ArrayList<>(GRID_BOUNDARY);
 
     static {
         for (byte number = 1; number <= GRID_BOUNDARY; number++) {
