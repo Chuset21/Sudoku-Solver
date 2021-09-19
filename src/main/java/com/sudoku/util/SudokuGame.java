@@ -147,7 +147,7 @@ public class SudokuGame {
         Collections.shuffle(arrayPositions);
 
         // We can increase/decrease the amount of iterations to increase/decrease difficulty
-        final int limit = switch (difficulty) {
+        final byte limit = (byte) switch (difficulty) {
             case EASY -> 30;
             case MEDIUM -> 45;
             case HARD -> 60;
