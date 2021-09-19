@@ -225,7 +225,8 @@ public class SudokuGame {
         }
         appendFirstEight(sb, limit);
 
-        return sb.append(grid[limit][limit]).toString();
+        final byte boardValue = grid[limit][limit];
+        return sb.append(boardValue == 0 ? "?" : boardValue).toString();
     }
 
     private void appendFirstEight(StringBuilder sb, byte row) {
