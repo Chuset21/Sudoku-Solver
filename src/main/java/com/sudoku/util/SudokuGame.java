@@ -15,6 +15,7 @@ public class SudokuGame {
     }
 
     private byte[][] grid;
+    private byte[][] solvedGrid;
     private Tuple<Byte, Byte> lastPosition;
     private byte solutionNum;
 
@@ -98,6 +99,24 @@ public class SudokuGame {
     public boolean solve() {
         resetLastPosition();
         return solve(grid);
+    }
+
+    public boolean isValueValid(byte val, byte col, byte row) {
+        if (solvedGrid == null) {
+            storeSolvedGrid();
+        }
+
+        return solvedGrid[col][row] == val;
+    }
+
+    public void storeSolvedGrid() {
+        solvedGrid = getCopyOfGrid();
+        solveGrid(solvedGrid);
+    }
+
+    private void solveGrid(byte[][] grid) {
+        resetLastPosition();
+        solve(grid);
     }
 
     private boolean solve(byte[][] grid) {
