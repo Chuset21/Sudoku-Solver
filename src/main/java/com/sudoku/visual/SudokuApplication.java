@@ -2,6 +2,7 @@ package com.sudoku.visual;
 
 import javafx.application.Application;
 import javafx.css.PseudoClass;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -42,6 +43,7 @@ public class SudokuApplication extends Application {
 
         // restrict input to integers:
         textField.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches("\\d?") ? c : null));
+        textField.setAlignment(Pos.CENTER);
         return textField;
     }
 
