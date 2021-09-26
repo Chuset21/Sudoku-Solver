@@ -43,11 +43,11 @@ public class SudokuApplication extends Application {
             }
         }
 
-        final Button solveButton = new Button("Solve");
-        setupButton(solveButton, board,SudokuGame.GRID_BOUNDARY / 3);
-
         final Button newGridButton = new Button("New Puzzle");
         setupButton(newGridButton, board, 0);
+
+        final Button solveButton = new Button("Solve");
+        setupButton(solveButton, board,SudokuGame.GRID_BOUNDARY / 3);
 
         final Button hintButton = new Button("Get Hint");
         setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
