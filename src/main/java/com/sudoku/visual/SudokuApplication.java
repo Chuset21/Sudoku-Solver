@@ -89,7 +89,7 @@ public class SudokuApplication extends Application {
         board.add(button, columnIndex, SudokuGame.GRID_BOUNDARY, 3, 1);
     }
 
-    private TextField createTextField(int n) {
+    private TextField createTextField(byte n) {
         final TextField textField = new TextField();
 
         // restrict input to integers
