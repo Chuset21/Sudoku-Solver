@@ -15,6 +15,10 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class SudokuApplication extends Application {
+    private static final int MIN_WIN_SIZE = 500;
+    private static final int MAX_WIN_H = 1200;
+    private static final int MAX_WIN_W = 1120;
+
     @Override
     public void start(Stage primaryStage) {
         final SudokuGame sudokuGame = new SudokuGame();
@@ -54,14 +58,20 @@ public class SudokuApplication extends Application {
         board.setAlignment(Pos.CENTER);
         board.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        primaryStage.setMaxHeight(Double.MAX_VALUE);
-        primaryStage.setMaxWidth(Double.MAX_VALUE);
-        primaryStage.setMinHeight(500);
-        primaryStage.setMinWidth(500);
+        setAppSize(primaryStage);
 
         primaryStage.setTitle("Sudoku Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void setAppSize(Stage stage) {
+        stage.setMaxHeight(MAX_WIN_H);
+        stage.setMaxWidth(MAX_WIN_W);
+        stage.setMinHeight(MIN_WIN_SIZE);
+        stage.setMinWidth(MIN_WIN_SIZE);
+        stage.setHeight(MIN_WIN_SIZE);
+        stage.setWidth(MIN_WIN_SIZE);
     }
 
     private void setupButton(Button button, GridPane board, int columnIndex) {
