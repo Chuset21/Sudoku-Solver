@@ -25,6 +25,6 @@
 }
 
 .cell .text-field {
-    -fx-pref-width: 3em;
-    -fx-pref-height: 3em;
+    -fx-pref-width: 4em;
+    -fx-pref-height: 4em;
 }

@@ -3,8 +3,11 @@ package com.sudoku.visual;
 import com.sudoku.util.SudokuGame;
 import javafx.application.Application;
 import javafx.css.PseudoClass;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
@@ -36,10 +39,39 @@ public class SudokuApplication extends Application {
             }
         }
 
+        final Button solveButton = new Button("Solve");
+        setupButton(solveButton, board,SudokuGame.GRID_BOUNDARY / 3);
+
+        final Button newGridButton = new Button("New Puzzle");
+        setupButton(newGridButton, board, 0);
+
+        final Button hintButton = new Button("Get Hint");
+        setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
+
         final Scene scene = new Scene(board);
         scene.getStylesheets().add("sudoku.css");
+
+        board.setAlignment(Pos.CENTER);
+        board.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        primaryStage.setMaxHeight(Double.MAX_VALUE);
+        primaryStage.setMaxWidth(Double.MAX_VALUE);
+        primaryStage.setMinHeight(500);
+        primaryStage.setMinWidth(500);
+
+        primaryStage.setTitle("Sudoku Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void setupButton(Button button, GridPane board, int columnIndex) {
+        button.getStyleClass().add("button");
+
+        GridPane.setHalignment(button, HPos.CENTER);
+        GridPane.setValignment(button, VPos.CENTER);
+        button.setMinSize(100, 40);
+
+        board.add(button, columnIndex, SudokuGame.GRID_BOUNDARY, 3, 1);
     }
 
     private TextField createTextField(int n) {
