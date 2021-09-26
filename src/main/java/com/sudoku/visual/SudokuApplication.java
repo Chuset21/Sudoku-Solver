@@ -2,6 +2,8 @@ package com.sudoku.visual;
 
 import com.sudoku.util.SudokuGame;
 import javafx.application.Application;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
@@ -12,12 +14,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class SudokuApplication extends Application {
     private static final int MIN_WIN_SIZE = 500;
     private static final int MAX_WIN_H = 1200;
     private static final int MAX_WIN_W = 1120;
+    private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
 
     @Override
     public void start(Stage primaryStage) {
@@ -26,6 +30,7 @@ public class SudokuApplication extends Application {
         final byte[][] grid = sudokuGame.getCopyOfGrid();
 
         final GridPane board = new GridPane();
+        board.getStyleClass().add("board");
 
         final PseudoClass right = PseudoClass.getPseudoClass("right");
         final PseudoClass bottom = PseudoClass.getPseudoClass("bottom");
@@ -79,7 +84,7 @@ public class SudokuApplication extends Application {
 
         GridPane.setHalignment(button, HPos.CENTER);
         GridPane.setValignment(button, VPos.CENTER);
-        button.setMinSize(100, 40);
+        button.setPrefSize(100, 40);
 
         board.add(button, columnIndex, SudokuGame.GRID_BOUNDARY, 3, 1);
     }
@@ -87,9 +92,13 @@ public class SudokuApplication extends Application {
     private TextField createTextField(int n) {
         final TextField textField = new TextField();
 
-        // restrict input to integers:
+        // restrict input to integers
         textField.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches("\\d?") ? c : null));
         textField.setAlignment(Pos.CENTER);
+
+        textField.fontProperty().bind(FONT_TRACKING);
+        textField.widthProperty().addListener((observableValue, oldWidth, newWidth) ->
+                FONT_TRACKING.set(Font.font(newWidth.doubleValue() / 4)));
 
         if (n > 0) {
             textField.setText(String.valueOf(n));
