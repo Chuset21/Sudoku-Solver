@@ -10,6 +10,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
@@ -18,6 +19,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class SudokuApplication extends Application {
+    private static final double MIN_SLIDER = 100;
+    private static final double MAX_SLIDER = 200;
     private static final int MIN_WIN_SIZE = 500;
     private static final int MAX_WIN_H = 1200;
     private static final int MAX_WIN_W = 1120;
@@ -56,6 +59,12 @@ public class SudokuApplication extends Application {
 
         final Button hintButton = new Button("Get Hint");
         setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
+
+        final Slider slider = new Slider(MIN_SLIDER, MAX_SLIDER, MIN_SLIDER + (MAX_SLIDER - MIN_SLIDER) / 2);
+        slider.getStyleClass().add("slider");
+        GridPane.setHalignment(slider, HPos.CENTER);
+        GridPane.setValignment(slider, VPos.CENTER);
+        board.add(slider, SudokuGame.GRID_BOUNDARY / 3, SudokuGame.GRID_BOUNDARY + 1, 3, 1);
 
         final Scene scene = new Scene(board);
         scene.getStylesheets().add("sudoku.css");
