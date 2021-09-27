@@ -93,7 +93,7 @@ public class SudokuApplication extends Application {
         final TextField textField = new TextField();
 
         // restrict input to integers
-        textField.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches("\\d?") ? c : null));
+        textField.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches("[1-9]?") ? c : null));
         textField.setAlignment(Pos.CENTER);
 
         textField.fontProperty().bind(FONT_TRACKING);
