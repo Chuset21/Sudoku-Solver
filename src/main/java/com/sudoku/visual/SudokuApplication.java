@@ -1,5 +1,6 @@
 package com.sudoku.visual;
 
+import com.sudoku.util.CoordinateMap;
 import com.sudoku.util.SudokuGame;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
@@ -24,12 +25,15 @@ public class SudokuApplication extends Application {
     private static final int MIN_WIN_SIZE = 500;
     private static final int MAX_WIN_H = 1200;
     private static final int MAX_WIN_W = 1120;
+
     private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
+//    private static final PseudoClass INCORRECT = PseudoClass.getPseudoClass("incorrect");
+
+    private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
 
     @Override
     public void start(Stage primaryStage) {
         final SudokuGame sudokuGame = new SudokuGame();
-        sudokuGame.storeSolvedGrid();
         final byte[][] grid = sudokuGame.getCopyOfGrid();
 
         final GridPane board = new GridPane();
@@ -38,14 +42,17 @@ public class SudokuApplication extends Application {
         final PseudoClass right = PseudoClass.getPseudoClass("right");
         final PseudoClass bottom = PseudoClass.getPseudoClass("bottom");
 
-        for (int col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
-            for (int row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
+        for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
+            for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
                 final StackPane cell = new StackPane();
                 cell.getStyleClass().add("cell");
                 cell.pseudoClassStateChanged(right, col == 2 || col == 5);
                 cell.pseudoClassStateChanged(bottom, row == 2 || row == 5);
 
-                cell.getChildren().add(createTextField(grid[col][row]));
+                final TextField textField = createTextField(grid[col][row]);
+//                setUpValidation(textField, sudokuGame, grid[col][row], col, row);
+                COORDINATE_MAP.putWithCoordinates(row, col, textField);
+                cell.getChildren().add(textField);
 
                 board.add(cell, col, row);
             }
@@ -55,7 +62,7 @@ public class SudokuApplication extends Application {
         setupButton(newGridButton, board, 0);
 
         final Button solveButton = new Button("Solve");
-        setupButton(solveButton, board,SudokuGame.GRID_BOUNDARY / 3);
+        setupButton(solveButton, board, SudokuGame.GRID_BOUNDARY / 3);
 
         final Button hintButton = new Button("Get Hint");
         setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
@@ -116,6 +123,16 @@ public class SudokuApplication extends Application {
 
         return textField;
     }
+
+//    private void setUpValidation(TextField textField, SudokuGame sudokuGame, byte n, byte col, byte row) {
+//        textField.textProperty().addListener((observable, oldValue, newValue) ->
+//                validate(textField, sudokuGame, n, col, row));
+//        validate(textField, sudokuGame, n, col, row);
+//    }
+//
+//    private void validate(TextField textField, SudokuGame sudokuGame, byte n, byte col, byte row) {
+//        textField.pseudoClassStateChanged(INCORRECT, sudokuGame.isValueValid(n, col, row));
+//    }
 
     public static void main(String[] args) {
         launch(args);

@@ -30,6 +30,7 @@ public class SudokuGame {
 
     public SudokuGame(Difficulty difficulty) {
         generateNewGrid(difficulty);
+        storeSolvedGrid();
     }
 
     /**
@@ -109,7 +110,7 @@ public class SudokuGame {
         return solvedGrid[col][row] == val;
     }
 
-    public void storeSolvedGrid() {
+    private void storeSolvedGrid() {
         solvedGrid = getCopyOfGrid();
         solveGrid(solvedGrid);
     }
