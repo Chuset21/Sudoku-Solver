@@ -6,14 +6,13 @@ import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
@@ -31,10 +30,13 @@ public class SudokuApplication extends Application {
 
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
 
+    private byte[][] grid;
+    private SudokuGame sudokuGame;
+
     @Override
     public void start(Stage primaryStage) {
-        final SudokuGame sudokuGame = new SudokuGame();
-        final byte[][] grid = sudokuGame.getCopyOfGrid();
+        sudokuGame = new SudokuGame();
+        grid = sudokuGame.getCopyOfGrid();
 
         final GridPane board = new GridPane();
         board.getStyleClass().add("board");
@@ -49,7 +51,7 @@ public class SudokuApplication extends Application {
                 cell.pseudoClassStateChanged(right, col == 2 || col == 5);
                 cell.pseudoClassStateChanged(bottom, row == 2 || row == 5);
 
-                final TextField textField = createTextField(grid[col][row]);
+                final TextField textField = createTextField();
 //                setUpValidation(textField, sudokuGame, grid[col][row], col, row);
                 COORDINATE_MAP.putWithCoordinates(row, col, textField);
                 cell.getChildren().add(textField);
@@ -57,9 +59,15 @@ public class SudokuApplication extends Application {
                 board.add(cell, col, row);
             }
         }
+        createNewGrid();
 
         final Button newGridButton = new Button("New Puzzle");
         setupButton(newGridButton, board, 0);
+        newGridButton.setOnAction(event -> {
+            sudokuGame.generateNewGrid(SudokuGame.Difficulty.MEDIUM);
+            grid = sudokuGame.getCopyOfGrid();
+            createNewGrid();
+        });
 
         final Button solveButton = new Button("Solve");
         setupButton(solveButton, board, SudokuGame.GRID_BOUNDARY / 3);
@@ -86,6 +94,23 @@ public class SudokuApplication extends Application {
         primaryStage.show();
     }
 
+    private void createNewGrid() {
+        for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
+            for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
+                final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
+                final byte value = grid[col][row];
+
+                current.setEditable(true);
+                current.clear();
+
+                if (value > 0) {
+                    current.setText(String.valueOf(value));
+                    current.setEditable(false);
+                }
+            }
+        }
+    }
+
     private void setAppSize(Stage stage) {
         stage.setMaxHeight(MAX_WIN_H);
         stage.setMaxWidth(MAX_WIN_W);
@@ -105,7 +130,7 @@ public class SudokuApplication extends Application {
         board.add(button, columnIndex, SudokuGame.GRID_BOUNDARY, 3, 1);
     }
 
-    private TextField createTextField(byte n) {
+    private TextField createTextField() {
         final TextField textField = new TextField();
 
         // restrict input to integers
@@ -115,11 +140,6 @@ public class SudokuApplication extends Application {
         textField.fontProperty().bind(FONT_TRACKING);
         textField.widthProperty().addListener((observableValue, oldWidth, newWidth) ->
                 FONT_TRACKING.set(Font.font(newWidth.doubleValue() / 4)));
-
-        if (n > 0) {
-            textField.setText(String.valueOf(n));
-            textField.setEditable(false);
-        }
 
         return textField;
     }
