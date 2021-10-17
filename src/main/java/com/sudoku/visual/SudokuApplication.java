@@ -21,6 +21,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Stack;
 
@@ -130,7 +131,7 @@ public class SudokuApplication extends Application {
         for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
             for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
                 final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
-                final byte value = grid[col][row];
+                final byte value = grid[row][col];
 
                 if (value > 0) {
                     current.setText(String.valueOf(value));
@@ -170,7 +171,7 @@ public class SudokuApplication extends Application {
                 final Tuple<Byte> current = emptyCellList.pop();
 
                 final byte value = sudokuGame.getSolutionCell(current.row(), current.col());
-                grid[current.col()][current.row()] = value;
+                grid[current.row()][current.col()] = value;
                 COORDINATE_MAP.getWithCoordinates(current.row(), current.col()).setText(String.valueOf(value));
 
                 hintButton.setDisable(true);
@@ -219,7 +220,7 @@ public class SudokuApplication extends Application {
             final byte val = Byte.parseByte(newValue);
             textField.setEditable(false);
             if (sudokuGame.isValueValid(val, col, row)) {
-                grid[col][row] = val;
+                grid[row][col] = val;
                 emptyCellList.remove(new Tuple<>(row, col));
                 textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
                 VALIDATOR_PAUSE.setOnFinished(event -> {

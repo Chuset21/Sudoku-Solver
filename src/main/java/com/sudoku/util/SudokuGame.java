@@ -129,7 +129,7 @@ public class SudokuGame {
             storeSolvedGrid();
         }
 
-        return solvedGrid[col][row] == val;
+        return solvedGrid[row][col] == val;
     }
 
     private void storeSolvedGrid() {
@@ -138,7 +138,7 @@ public class SudokuGame {
     }
 
     public byte getSolutionCell(byte row, byte col) {
-        return solvedGrid[col][row];
+        return solvedGrid[row][col];
     }
 
     private void solveGrid(byte[][] grid) {
