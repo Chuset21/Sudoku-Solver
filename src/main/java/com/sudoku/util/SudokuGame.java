@@ -16,7 +16,7 @@ public class SudokuGame {
 
     private byte[][] grid;
     private byte[][] solvedGrid;
-    private Tuple<Byte, Byte> lastPosition;
+    private Tuple<Byte> lastPosition;
     private byte solutionNum;
 
     public static final byte GRID_BOUNDARY = 9;
@@ -48,12 +48,9 @@ public class SudokuGame {
         return Copy.deepCopy(grid);
     }
 
-    private static record Tuple<X, Y>(X row, Y col) {
-    }
-
-    private Tuple<Byte, Byte> findEmpty(byte[][] grid, Tuple<Byte, Byte> lastPosition) {
-        for (byte i = lastPosition.row; i < GRID_BOUNDARY; i++) {
-            for (byte j = i == lastPosition.row ? lastPosition.col : 0; j < GRID_BOUNDARY; j++) {
+    private Tuple<Byte> findEmpty(byte[][] grid, Tuple<Byte> lastPosition) {
+        for (byte i = lastPosition.row(); i < GRID_BOUNDARY; i++) {
+            for (byte j = i == lastPosition.row() ? lastPosition.col() : 0; j < GRID_BOUNDARY; j++) {
                 if (grid[i][j] == 0) {
                     return new Tuple<>(i, j); // row, col
                 }
@@ -62,24 +59,24 @@ public class SudokuGame {
         return null;
     }
 
-    private boolean isValid(byte[][] grid, byte number, Tuple<Byte, Byte> position) {
+    private boolean isValid(byte[][] grid, byte number, Tuple<Byte> position) {
         // Check row
         for (byte i = 0; i < GRID_BOUNDARY; i++) {
-            if (position.col != i && grid[position.row][i] == number) {
+            if (position.col() != i && grid[position.row()][i] == number) {
                 return false;
             }
         }
 
         // Check column
         for (byte i = 0; i < GRID_BOUNDARY; i++) {
-            if (position.row != i && grid[i][position.col] == number) {
+            if (position.row() != i && grid[i][position.col()] == number) {
                 return false;
             }
         }
 
         // Check cubes
-        final int boxX = position.col / 3;
-        final int boxY = position.row / 3;
+        final int boxX = position.col() / 3;
+        final int boxY = position.row() / 3;
 
         final int iStart = boxY * 3;
         final int iEnd = iStart + 3;
@@ -88,7 +85,7 @@ public class SudokuGame {
 
         for (int i = iStart; i < iEnd; i++) {
             for (int j = jStart; j < jEnd; j++) {
-                if (i != position.row && j != position.col && grid[i][j] == number) {
+                if (i != position.row() && j != position.col() && grid[i][j] == number) {
                     return false;
                 }
             }
@@ -122,7 +119,7 @@ public class SudokuGame {
 
     private boolean solve(byte[][] grid) {
         // Base case: If all positions are filled up, the grid must have been solved
-        final Tuple<Byte, Byte> position = findEmpty(grid, lastPosition);
+        final Tuple<Byte> position = findEmpty(grid, lastPosition);
         if (position == null) {
             return true;
         }
@@ -130,14 +127,14 @@ public class SudokuGame {
         lastPosition = position;
         for (byte num : NUMBERS) {
             if (isValid(grid, num, position)) {
-                grid[position.row][position.col] = num;
+                grid[position.row()][position.col()] = num;
 
                 if (solve(grid)) {
                     return true;
                 }
 
                 // If it wasn't solved it backtracks to here
-                grid[position.row][position.col] = 0;
+                grid[position.row()][position.col()] = 0;
                 lastPosition = position;
             }
         }
@@ -202,7 +199,7 @@ public class SudokuGame {
     // Return value is only used to exit the recursion
     private boolean hasUniqueSolution(byte[][] grid) {
         // Base case: If all positions are filled up, the grid must have been solved
-        final Tuple<Byte, Byte> position = findEmpty(grid, lastPosition);
+        final Tuple<Byte> position = findEmpty(grid, lastPosition);
         if (position == null) {
             solutionNum++;
             return true;
@@ -211,14 +208,14 @@ public class SudokuGame {
         lastPosition = position;
         for (byte num : NUMBERS) {
             if (isValid(grid, num, position)) {
-                grid[position.row][position.col] = num;
+                grid[position.row()][position.col()] = num;
 
                 if (hasUniqueSolution(grid) && solutionNum > 1) {
                     return true;
                 }
 
                 // If it wasn't solved it backtracks to here
-                grid[position.row][position.col] = 0;
+                grid[position.row()][position.col()] = 0;
                 lastPosition = position;
             }
         }
