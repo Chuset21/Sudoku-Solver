@@ -2,6 +2,7 @@ package com.sudoku.visual;
 
 import com.sudoku.util.CoordinateMap;
 import com.sudoku.util.SudokuGame;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -12,10 +13,12 @@ import javafx.geometry.Side;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class SudokuApplication extends Application {
     private static final double MIN_SLIDER = 100;
@@ -25,12 +28,13 @@ public class SudokuApplication extends Application {
     private static final int MAX_WIN_W = 1120;
 
     private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
-//    private static final PseudoClass INCORRECT = PseudoClass.getPseudoClass("incorrect");
 
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
+    private static final PauseTransition PAUSE_VALIDATOR = new PauseTransition(Duration.seconds(1));
 
     private byte[][] grid;
     private SudokuGame sudokuGame;
+    private boolean validate;
 
     @Override
     public void start(Stage primaryStage) {
@@ -51,7 +55,6 @@ public class SudokuApplication extends Application {
                 cell.pseudoClassStateChanged(bottom, row == 2 || row == 5);
 
                 final TextField textField = createTextField();
-//                setUpValidation(textField, sudokuGame, grid[col][row], col, row);
                 COORDINATE_MAP.putWithCoordinates(row, col, textField);
                 cell.getChildren().add(textField);
 
@@ -112,6 +115,7 @@ public class SudokuApplication extends Application {
     }
 
     private void createNewGrid() {
+        validate = false;
         for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
             for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
                 final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
@@ -124,8 +128,10 @@ public class SudokuApplication extends Application {
                     current.setText(String.valueOf(value));
                     current.setEditable(false);
                 }
+                setUpValidation(current, col, row);
             }
         }
+        validate = true;
     }
 
     private void setAppSize(Stage stage) {
@@ -161,15 +167,34 @@ public class SudokuApplication extends Application {
         return textField;
     }
 
-//    private void setUpValidation(TextField textField, SudokuGame sudokuGame, byte n, byte col, byte row) {
-//        textField.textProperty().addListener((observable, oldValue, newValue) ->
-//                validate(textField, sudokuGame, n, col, row));
-//        validate(textField, sudokuGame, n, col, row);
-//    }
-//
-//    private void validate(TextField textField, SudokuGame sudokuGame, byte n, byte col, byte row) {
-//        textField.pseudoClassStateChanged(INCORRECT, sudokuGame.isValueValid(n, col, row));
-//    }
+    private void setUpValidation(TextField textField, byte col, byte row) {
+        textField.textProperty().addListener((observable, oldValue, newValue) ->
+                validate(textField, newValue, col, row));
+    }
+
+    private void validate(TextField textField, String newValue, byte col, byte row) {
+        if (validate && !newValue.isEmpty()) {
+            final byte val = Byte.parseByte(newValue);
+            textField.setEditable(false);
+            if (sudokuGame.isValueValid(val, col, row)) {
+                grid[col][row] = val;
+                textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
+                PAUSE_VALIDATOR.setOnFinished(event -> {
+                    textField.setStyle("-fx-text-fill: black;");
+                    textField.setBorder(Border.EMPTY);
+                });
+            } else {
+                textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
+                PAUSE_VALIDATOR.setOnFinished(event -> {
+                    textField.setStyle("-fx-text-fill: black;");
+                    textField.setBorder(Border.EMPTY);
+                    textField.clear();
+                    textField.setEditable(true);
+                });
+            }
+            PAUSE_VALIDATOR.play();
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);
