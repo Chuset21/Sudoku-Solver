@@ -10,6 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -61,13 +62,33 @@ public class SudokuApplication extends Application {
         }
         createNewGrid();
 
-        final Button newGridButton = new Button("New Puzzle");
-        setupButton(newGridButton, board, 0);
-        newGridButton.setOnAction(event -> {
-            sudokuGame.generateNewGrid(SudokuGame.Difficulty.MEDIUM);
-            grid = sudokuGame.getCopyOfGrid();
-            createNewGrid();
+        final MenuItem easy = new MenuItem("Easy");
+        easy.setOnAction(event -> {
+            sudokuGame.generateNewGrid(SudokuGame.Difficulty.EASY);
+            generateGrid();
         });
+
+        final MenuItem medium = new MenuItem("Medium");
+        medium.setOnAction(event -> {
+            sudokuGame.generateNewGrid(SudokuGame.Difficulty.MEDIUM);
+            generateGrid();
+        });
+
+        final MenuItem hard = new MenuItem("Hard");
+        hard.setOnAction(event -> {
+            sudokuGame.generateNewGrid(SudokuGame.Difficulty.HARD);
+            generateGrid();
+        });
+
+        final MenuItem veryHard = new MenuItem("Very Hard");
+        veryHard.setOnAction(event -> {
+            sudokuGame.generateNewGrid(SudokuGame.Difficulty.VERY_HARD);
+            generateGrid();
+        });
+
+        final MenuButton newGridButton = new MenuButton("New Puzzle", null, easy, medium, hard, veryHard);
+        newGridButton.setPopupSide(Side.TOP);
+        setupButton(newGridButton, board, 0);
 
         final Button solveButton = new Button("Solve");
         setupButton(solveButton, board, SudokuGame.GRID_BOUNDARY / 3);
@@ -92,6 +113,11 @@ public class SudokuApplication extends Application {
         primaryStage.setTitle("Sudoku Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void generateGrid() {
+        grid = sudokuGame.getCopyOfGrid();
+        createNewGrid();
     }
 
     private void createNewGrid() {
@@ -120,7 +146,7 @@ public class SudokuApplication extends Application {
         stage.setWidth(MIN_WIN_SIZE);
     }
 
-    private void setupButton(Button button, GridPane board, int columnIndex) {
+    private void setupButton(ButtonBase button, GridPane board, int columnIndex) {
         button.getStyleClass().add("button");
 
         GridPane.setHalignment(button, HPos.CENTER);
