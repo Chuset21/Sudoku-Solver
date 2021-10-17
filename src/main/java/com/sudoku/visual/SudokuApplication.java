@@ -32,8 +32,8 @@ public class SudokuApplication extends Application {
     private static final int MAX_WIN_W = 1120;
 
     private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
-
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
+
     private static final char PAUSE_DURATION = 1;
     private static final PauseTransition VALIDATOR_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
     private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
@@ -45,7 +45,7 @@ public class SudokuApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        grid = sudokuGame.getCopyOfGrid();
+        grid = sudokuGame.getGrid();
 
         final GridPane board = new GridPane();
         board.getStyleClass().add("board");
@@ -67,19 +67,11 @@ public class SudokuApplication extends Application {
                 board.add(cell, col, row);
             }
         }
-        createNewGrid();
 
         final MenuItem easy = new MenuItem("Easy");
-        setMenuItemDifficulty(easy, SudokuGame.Difficulty.EASY);
-
         final MenuItem medium = new MenuItem("Medium");
-        setMenuItemDifficulty(medium, SudokuGame.Difficulty.MEDIUM);
-
         final MenuItem hard = new MenuItem("Hard");
-        setMenuItemDifficulty(hard, SudokuGame.Difficulty.HARD);
-
         final MenuItem veryHard = new MenuItem("Very Hard");
-        setMenuItemDifficulty(veryHard, SudokuGame.Difficulty.VERY_HARD);
 
         final MenuButton newGridButton = new MenuButton("New Puzzle", null, easy, medium, hard, veryHard);
         newGridButton.setPopupSide(Side.TOP);
@@ -98,6 +90,13 @@ public class SudokuApplication extends Application {
         GridPane.setValignment(slider, VPos.CENTER);
         board.add(slider, SudokuGame.GRID_BOUNDARY / 3, SudokuGame.GRID_BOUNDARY + 1, 3, 1);
 
+        setMenuItemDifficulty(easy, SudokuGame.Difficulty.EASY, solveButton, hintButton);
+        setMenuItemDifficulty(medium, SudokuGame.Difficulty.MEDIUM, solveButton, hintButton);
+        setMenuItemDifficulty(hard, SudokuGame.Difficulty.HARD, solveButton, hintButton);
+        setMenuItemDifficulty(veryHard, SudokuGame.Difficulty.VERY_HARD, solveButton, hintButton);
+
+        createNewGrid(solveButton, hintButton);
+
         final Scene scene = new Scene(board);
         scene.getStylesheets().add("sudoku.css");
 
@@ -111,17 +110,21 @@ public class SudokuApplication extends Application {
         primaryStage.show();
     }
 
-    private void setMenuItemDifficulty(MenuItem menuItem, SudokuGame.Difficulty difficulty) {
-        menuItem.setOnAction(event -> getNewGrid(difficulty));
+    private void setMenuItemDifficulty(MenuItem menuItem, SudokuGame.Difficulty difficulty, Button... buttons) {
+        menuItem.setOnAction(event -> getNewGrid(difficulty, buttons));
     }
 
-    private void getNewGrid(SudokuGame.Difficulty difficulty) {
+    private void getNewGrid(SudokuGame.Difficulty difficulty, Button... buttons) {
         sudokuGame.generateNewGrid(difficulty);
-        grid = sudokuGame.getCopyOfGrid();
-        createNewGrid();
+        grid = sudokuGame.getGrid();
+        createNewGrid(buttons);
     }
 
-    private void createNewGrid() {
+    private void createNewGrid(Button... buttons) {
+        for (Button b : buttons) {
+            b.setDisable(false);
+        }
+
         validate = false;
         emptyCellList.clear();
         for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
@@ -129,17 +132,16 @@ public class SudokuApplication extends Application {
                 final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
                 final byte value = grid[col][row];
 
-                current.setEditable(true);
-                current.clear();
-
                 if (value > 0) {
                     current.setText(String.valueOf(value));
                     current.setEditable(false);
                 } else {
+                    current.setEditable(true);
+                    current.clear();
                     emptyCellList.add(new Tuple<>(row, col));
                 }
 
-                setUpValidation(current, col, row);
+                setUpValidation(current, col, row, buttons);
             }
         }
         Collections.shuffle(emptyCellList);
@@ -160,21 +162,26 @@ public class SudokuApplication extends Application {
             hintButton.setDisable(false);
             solveButton.setDisable(false);
             newGridButton.setDisable(false);
-            COORDINATE_MAP.values().forEach(textField -> textField.setEditable(true));
+            emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
         });
 
         hintButton.setOnAction(event -> {
-            if (!emptyCellList.isEmpty()) {
+            if (!sudokuGame.isSolved()) {
                 final Tuple<Byte> current = emptyCellList.pop();
-                COORDINATE_MAP.getWithCoordinates(current.row(), current.col()).setText(
-                        String.valueOf(sudokuGame.getSolutionCell(current.row(), current.col())));
+
+                final byte value = sudokuGame.getSolutionCell(current.row(), current.col());
+                grid[current.col()][current.row()] = value;
+                COORDINATE_MAP.getWithCoordinates(current.row(), current.col()).setText(String.valueOf(value));
+
                 hintButton.setDisable(true);
                 solveButton.setDisable(true);
                 newGridButton.setDisable(true);
-                COORDINATE_MAP.values().forEach(textField -> textField.setEditable(false));
+                emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                 HINT_PAUSE.play();
+            } else {
+                hintButton.setDisable(true);
+                solveButton.setDisable(true);
             }
-            // TODO else congratulate??
         });
     }
 
@@ -202,12 +209,12 @@ public class SudokuApplication extends Application {
         return textField;
     }
 
-    private void setUpValidation(TextField textField, byte col, byte row) {
+    private void setUpValidation(TextField textField, byte col, byte row, Button... buttons) {
         textField.textProperty().addListener((observable, oldValue, newValue) ->
-                validate(textField, newValue, col, row));
+                validate(textField, newValue, col, row, buttons));
     }
 
-    private void validate(TextField textField, String newValue, byte col, byte row) {
+    private void validate(TextField textField, String newValue, byte col, byte row, Button... buttons) {
         if (validate && !newValue.isEmpty()) {
             final byte val = Byte.parseByte(newValue);
             textField.setEditable(false);
@@ -218,6 +225,11 @@ public class SudokuApplication extends Application {
                 VALIDATOR_PAUSE.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
+                    if (sudokuGame.isSolved()) {
+                        for (Button b : buttons) {
+                            b.setDisable(true);
+                        }
+                    }
                 });
             } else {
                 textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");

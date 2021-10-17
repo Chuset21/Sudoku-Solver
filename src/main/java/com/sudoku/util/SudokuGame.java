@@ -18,6 +18,7 @@ public class SudokuGame {
     private byte[][] solvedGrid;
     private Tuple<Byte> lastPosition;
     private byte solutionNum;
+    private boolean isSolved;
 
     public static final byte GRID_BOUNDARY = 9;
     private static final List<Byte> NUMBERS = new ArrayList<>(GRID_BOUNDARY);
@@ -38,6 +39,30 @@ public class SudokuGame {
      */
     public SudokuGame() {
         this(Difficulty.MEDIUM);
+    }
+
+    public byte[][] getGrid() {
+        return grid;
+    }
+
+    private boolean checkIfSolved() {
+        for (byte i = 0; i < GRID_BOUNDARY; i++) {
+            for (byte j = 0; j < GRID_BOUNDARY; j++) {
+                if (grid[i][j] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isSolved() {
+        if (!isSolved) {
+            isSolved = checkIfSolved();
+        } else {
+            System.out.println("Solved");
+        }
+        return isSolved;
     }
 
     public byte[][] getCopyOfGrid() {
@@ -151,6 +176,7 @@ public class SudokuGame {
     }
 
     public void generateNewGrid(Difficulty difficulty) {
+        isSolved = false;
         resetLastPosition();
 
         // All values are automatically initialised to 0
