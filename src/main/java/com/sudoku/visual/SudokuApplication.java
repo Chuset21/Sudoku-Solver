@@ -61,28 +61,16 @@ public class SudokuApplication extends Application {
         createNewGrid();
 
         final MenuItem easy = new MenuItem("Easy");
-        easy.setOnAction(event -> {
-            sudokuGame.generateNewGrid(SudokuGame.Difficulty.EASY);
-            generateGrid();
-        });
+        setMenuItemDifficulty(easy, SudokuGame.Difficulty.EASY);
 
         final MenuItem medium = new MenuItem("Medium");
-        medium.setOnAction(event -> {
-            sudokuGame.generateNewGrid(SudokuGame.Difficulty.MEDIUM);
-            generateGrid();
-        });
+        setMenuItemDifficulty(medium, SudokuGame.Difficulty.MEDIUM);
 
         final MenuItem hard = new MenuItem("Hard");
-        hard.setOnAction(event -> {
-            sudokuGame.generateNewGrid(SudokuGame.Difficulty.HARD);
-            generateGrid();
-        });
+        setMenuItemDifficulty(hard, SudokuGame.Difficulty.HARD);
 
         final MenuItem veryHard = new MenuItem("Very Hard");
-        veryHard.setOnAction(event -> {
-            sudokuGame.generateNewGrid(SudokuGame.Difficulty.VERY_HARD);
-            generateGrid();
-        });
+        setMenuItemDifficulty(veryHard, SudokuGame.Difficulty.VERY_HARD);
 
         final MenuButton newGridButton = new MenuButton("New Puzzle", null, easy, medium, hard, veryHard);
         newGridButton.setPopupSide(Side.TOP);
@@ -113,7 +101,12 @@ public class SudokuApplication extends Application {
         primaryStage.show();
     }
 
-    private void generateGrid() {
+    private void setMenuItemDifficulty(MenuItem menuItem, SudokuGame.Difficulty difficulty) {
+        menuItem.setOnAction(event -> getNewGrid(difficulty));
+    }
+
+    private void getNewGrid(SudokuGame.Difficulty difficulty) {
+        sudokuGame.generateNewGrid(difficulty);
         grid = sudokuGame.getCopyOfGrid();
         createNewGrid();
     }
