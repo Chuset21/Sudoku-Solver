@@ -2,6 +2,7 @@ package com.sudoku.visual;
 
 import com.sudoku.util.CoordinateMap;
 import com.sudoku.util.SudokuGame;
+import com.sudoku.util.Tuple;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
@@ -20,6 +21,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.Collections;
+import java.util.Stack;
+
 public class SudokuApplication extends Application {
     private static final double MIN_SLIDER = 100;
     private static final double MAX_SLIDER = 200;
@@ -30,15 +34,17 @@ public class SudokuApplication extends Application {
     private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
 
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
-    private static final PauseTransition PAUSE_VALIDATOR = new PauseTransition(Duration.seconds(1));
+    private static final char PAUSE_DURATION = 1;
+    private static final PauseTransition VALIDATOR_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
+    private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
+    private final Stack<Tuple<Byte>> emptyCellList = new Stack<>();
+    private final SudokuGame sudokuGame = new SudokuGame();
     private byte[][] grid;
-    private SudokuGame sudokuGame;
     private boolean validate;
 
     @Override
     public void start(Stage primaryStage) {
-        sudokuGame = new SudokuGame();
         grid = sudokuGame.getCopyOfGrid();
 
         final GridPane board = new GridPane();
@@ -84,6 +90,7 @@ public class SudokuApplication extends Application {
 
         final Button hintButton = new Button("Get Hint");
         setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
+        setupHintAction(hintButton, solveButton, newGridButton);
 
         final Slider slider = new Slider(MIN_SLIDER, MAX_SLIDER, MIN_SLIDER + (MAX_SLIDER - MIN_SLIDER) / 2);
         slider.getStyleClass().add("slider");
@@ -116,6 +123,7 @@ public class SudokuApplication extends Application {
 
     private void createNewGrid() {
         validate = false;
+        emptyCellList.clear();
         for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
             for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
                 final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
@@ -127,10 +135,14 @@ public class SudokuApplication extends Application {
                 if (value > 0) {
                     current.setText(String.valueOf(value));
                     current.setEditable(false);
+                } else {
+                    emptyCellList.add(new Tuple<>(row, col));
                 }
+
                 setUpValidation(current, col, row);
             }
         }
+        Collections.shuffle(emptyCellList);
         validate = true;
     }
 
@@ -141,6 +153,29 @@ public class SudokuApplication extends Application {
         stage.setMinWidth(MIN_WIN_SIZE);
         stage.setHeight(MIN_WIN_SIZE);
         stage.setWidth(MIN_WIN_SIZE);
+    }
+
+    private void setupHintAction(Button hintButton, Button solveButton, MenuButton newGridButton) {
+        HINT_PAUSE.setOnFinished(event -> {
+            hintButton.setDisable(false);
+            solveButton.setDisable(false);
+            newGridButton.setDisable(false);
+            COORDINATE_MAP.values().forEach(textField -> textField.setEditable(true));
+        });
+
+        hintButton.setOnAction(event -> {
+            if (!emptyCellList.isEmpty()) {
+                final Tuple<Byte> current = emptyCellList.pop();
+                COORDINATE_MAP.getWithCoordinates(current.row(), current.col()).setText(
+                        String.valueOf(sudokuGame.getSolutionCell(current.row(), current.col())));
+                hintButton.setDisable(true);
+                solveButton.setDisable(true);
+                newGridButton.setDisable(true);
+                COORDINATE_MAP.values().forEach(textField -> textField.setEditable(false));
+                HINT_PAUSE.play();
+            }
+            // TODO else congratulate??
+        });
     }
 
     private void setupButton(ButtonBase button, GridPane board, int columnIndex) {
@@ -178,21 +213,22 @@ public class SudokuApplication extends Application {
             textField.setEditable(false);
             if (sudokuGame.isValueValid(val, col, row)) {
                 grid[col][row] = val;
+                emptyCellList.remove(new Tuple<>(row, col));
                 textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
-                PAUSE_VALIDATOR.setOnFinished(event -> {
+                VALIDATOR_PAUSE.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
                 });
             } else {
                 textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
-                PAUSE_VALIDATOR.setOnFinished(event -> {
+                VALIDATOR_PAUSE.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
                     textField.clear();
                     textField.setEditable(true);
                 });
             }
-            PAUSE_VALIDATOR.play();
+            VALIDATOR_PAUSE.play();
         }
     }
 

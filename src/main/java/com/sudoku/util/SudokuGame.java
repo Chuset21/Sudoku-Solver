@@ -112,6 +112,10 @@ public class SudokuGame {
         solveGrid(solvedGrid);
     }
 
+    public byte getSolutionCell(byte row, byte col) {
+        return solvedGrid[col][row];
+    }
+
     private void solveGrid(byte[][] grid) {
         resetLastPosition();
         solve(grid);
