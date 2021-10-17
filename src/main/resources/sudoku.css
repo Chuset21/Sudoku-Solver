@@ -33,4 +33,5 @@
 .cell .text-field {
     -fx-pref-width: 4em;
     -fx-pref-height: 4em;
+    -fx-text-fill: black;
 }
