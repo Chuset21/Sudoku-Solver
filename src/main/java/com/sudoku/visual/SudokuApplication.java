@@ -35,7 +35,7 @@ public class SudokuApplication extends Application {
     private static final ObjectProperty<Font> FONT_TRACKING = new SimpleObjectProperty<>(Font.getDefault());
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
 
-    private static final char PAUSE_DURATION = 1;
+    private static final byte PAUSE_DURATION = 1;
     private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
     private double visualPauseDur = 1;
