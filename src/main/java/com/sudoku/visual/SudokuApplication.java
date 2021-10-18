@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Stack;
 
+import static com.sudoku.util.SudokuGame.GRID_BOUNDARY;
+
 public class SudokuApplication extends Application {
     private static final double MIN_SLIDER = 0.4;
     private static final double MAX_SLIDER = 2;
@@ -40,10 +42,14 @@ public class SudokuApplication extends Application {
 
     private double visualPauseDur = 1;
     private boolean isBeingSolved = false;
+    private Tuple<Byte> lastPosition;
     private final Stack<Tuple<Byte>> emptyCellList = new Stack<>();
     private final SudokuGame sudokuGame = new SudokuGame();
     private byte[][] grid;
     private boolean validate;
+    private MenuButton newGridButton;
+    private Button solveButton;
+    private Button hintButton;
 
     @Override
     public void start(Stage primaryStage) {
@@ -55,8 +61,8 @@ public class SudokuApplication extends Application {
         final PseudoClass right = PseudoClass.getPseudoClass("right");
         final PseudoClass bottom = PseudoClass.getPseudoClass("bottom");
 
-        for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
-            for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
+        for (byte col = 0; col < GRID_BOUNDARY; col++) {
+            for (byte row = 0; row < GRID_BOUNDARY; row++) {
                 final StackPane cell = new StackPane();
                 cell.getStyleClass().add("cell");
                 cell.pseudoClassStateChanged(right, col == 2 || col == 5);
@@ -75,22 +81,23 @@ public class SudokuApplication extends Application {
         final MenuItem hard = new MenuItem("Hard");
         final MenuItem veryHard = new MenuItem("Very Hard");
 
-        final MenuButton newGridButton = new MenuButton("New Puzzle", null, easy, medium, hard, veryHard);
+        newGridButton = new MenuButton("New Puzzle", null, easy, medium, hard, veryHard);
         newGridButton.setPopupSide(Side.TOP);
         setupButton(newGridButton, board, 0);
 
-        final Button solveButton = new Button("Solve");
-        setupButton(solveButton, board, SudokuGame.GRID_BOUNDARY / 3);
+        solveButton = new Button("Solve");
+        setupButton(solveButton, board, GRID_BOUNDARY / 3);
+        solveButton.setOnAction(event -> solve());
 
-        final Button hintButton = new Button("Get Hint");
-        setupButton(hintButton, board, 2 * (SudokuGame.GRID_BOUNDARY / 3));
-        setupHintAction(hintButton, solveButton, newGridButton);
+        hintButton = new Button("Get Hint");
+        setupButton(hintButton, board, 2 * (GRID_BOUNDARY / 3));
+        setupHintAction();
 
         final Slider slider = new Slider(MIN_SLIDER, MAX_SLIDER, MIN_SLIDER + (MAX_SLIDER - MIN_SLIDER) / 2);
         slider.getStyleClass().add("slider");
         GridPane.setHalignment(slider, HPos.CENTER);
         GridPane.setValignment(slider, VPos.CENTER);
-        board.add(slider, SudokuGame.GRID_BOUNDARY / 3, SudokuGame.GRID_BOUNDARY + 1, 3, 1);
+        board.add(slider, GRID_BOUNDARY / 3, GRID_BOUNDARY + 1, 3, 1);
         slider.valueProperty().addListener((observable, oldValue, newValue) ->
                 visualPauseDur = invertRange(newValue.doubleValue()));
 
@@ -114,6 +121,97 @@ public class SudokuApplication extends Application {
         primaryStage.show();
     }
 
+    private void enableButtons() {
+        newGridButton.setDisable(false);
+        solveButton.setDisable(false);
+        hintButton.setDisable(false);
+    }
+
+    private void disableButtons() {
+        newGridButton.setDisable(true);
+        solveButton.setDisable(true);
+        hintButton.setDisable(true);
+    }
+
+    private void resetLastPosition() {
+        lastPosition = new Tuple<>((byte) 0, (byte) 0);
+    }
+
+    private void solve() {
+        isBeingSolved = true;
+        resetLastPosition();
+        disableButtons();
+        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
+
+        final boolean result = solveGrid();
+        if (result) {
+            for (byte col = 0; col < GRID_BOUNDARY; col++) {
+                for (byte row = 0; row < GRID_BOUNDARY; row++) {
+                    COORDINATE_MAP.getWithCoordinates(row, col).
+                            setStyle("-fx-text-fill: green; -fx-border-color: green;");
+                }
+            }
+        }
+
+        final PauseTransition pause = new PauseTransition(Duration.seconds(2));
+        pause.setOnFinished(event -> {
+            for (byte col = 0; col < GRID_BOUNDARY; col++) {
+                for (byte row = 0; row < GRID_BOUNDARY; row++) {
+                    final TextField textField = COORDINATE_MAP.getWithCoordinates(row, col);
+                    textField.setStyle("-fx-text-fill: black;");
+                    textField.setBorder(Border.EMPTY);
+                }
+            }
+            enableButtons();
+            isBeingSolved = false;
+        });
+        pause.play();
+    }
+
+    // TODO Add pauses
+    private boolean solveGrid() {
+        final Tuple<Byte> position = sudokuGame.findEmpty(grid, lastPosition);
+        if (position == null) {
+            return true;
+        }
+
+//        final PauseTransition pause = new PauseTransition();
+        lastPosition = position;
+        final TextField currentCell = COORDINATE_MAP.getWithCoordinates(lastPosition.row(), lastPosition.col());
+        for (byte num : SudokuGame.NUMBERS) {
+            if (sudokuGame.isValid(grid, num, position)) {
+                grid[position.row()][position.col()] = num;
+
+//                pause.setDuration(Duration.seconds(visualPauseDur));
+                currentCell.setText(String.valueOf(num));
+                if (sudokuGame.isValueValid(num, position.col(), position.row())) {
+                    currentCell.setStyle("-fx-text-fill: green; -fx-border-color: green;");
+                } else {
+                    currentCell.setStyle("-fx-text-fill: red; -fx-border-color: red;");
+                }
+//                pause.play();
+
+                if (solveGrid()) {
+                    return true;
+                }
+
+                // If it wasn't solved it backtracks to here
+                currentCell.clear();
+                currentCell.setStyle("-fx-text-fill: black;");
+                currentCell.setBorder(Border.EMPTY);
+                grid[position.row()][position.col()] = 0;
+                lastPosition = position;
+            } else {
+                currentCell.setText(String.valueOf(num));
+//                pause.setDuration(Duration.seconds(visualPauseDur / 5));
+//                pause.setOnFinished(event -> currentCell.clear());
+//                pause.play();
+            }
+        }
+
+        return false;
+    }
+
     private double invertRange(double x) {
         return MAX_SLIDER - x + MIN_SLIDER;
     }
@@ -133,8 +231,8 @@ public class SudokuApplication extends Application {
 
         validate = false;
         emptyCellList.clear();
-        for (byte col = 0; col < SudokuGame.GRID_BOUNDARY; col++) {
-            for (byte row = 0; row < SudokuGame.GRID_BOUNDARY; row++) {
+        for (byte col = 0; col < GRID_BOUNDARY; col++) {
+            for (byte row = 0; row < GRID_BOUNDARY; row++) {
                 final TextField current = COORDINATE_MAP.getWithCoordinates(row, col);
                 final byte value = grid[row][col];
 
@@ -163,7 +261,7 @@ public class SudokuApplication extends Application {
         stage.setWidth(MIN_WIN_SIZE);
     }
 
-    private void setupHintAction(Button hintButton, Button solveButton, MenuButton newGridButton) {
+    private void setupHintAction() {
         HINT_PAUSE.setOnFinished(event -> {
             hintButton.setDisable(false);
             solveButton.setDisable(false);
@@ -198,7 +296,7 @@ public class SudokuApplication extends Application {
         GridPane.setValignment(button, VPos.CENTER);
         button.setPrefSize(100, 40);
 
-        board.add(button, columnIndex, SudokuGame.GRID_BOUNDARY, 3, 1);
+        board.add(button, columnIndex, GRID_BOUNDARY, 3, 1);
     }
 
     private TextField createTextField() {
@@ -221,9 +319,8 @@ public class SudokuApplication extends Application {
     }
 
     private void validate(TextField textField, String newValue, byte col, byte row, Button... buttons) {
-        if (validate && !newValue.isEmpty()) {
-            final PauseTransition pause = new PauseTransition(Duration.seconds(isBeingSolved ?
-                    visualPauseDur : PAUSE_DURATION));
+        if (!isBeingSolved && validate && !newValue.isEmpty()) {
+            final PauseTransition pause = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
             Arrays.stream(buttons).forEach(b -> b.setDisable(true));
             emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
@@ -237,7 +334,7 @@ public class SudokuApplication extends Application {
                 pause.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
-                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(!isBeingSolved));
+                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                     if (sudokuGame.isSolved()) {
                         Arrays.stream(buttons).forEach(b -> b.setDisable(true));
                     } else if (!isBeingSolved) {
@@ -250,11 +347,10 @@ public class SudokuApplication extends Application {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
                     textField.clear();
-                    if (!isBeingSolved) {
-                        textField.setEditable(true);
-                        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
-                        Arrays.stream(buttons).forEach(b -> b.setDisable(false));
-                    }
+
+                    textField.setEditable(true);
+                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                    Arrays.stream(buttons).forEach(b -> b.setDisable(false));
                 });
             }
             pause.play();
