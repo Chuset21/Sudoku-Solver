@@ -6,15 +6,15 @@ public final class CoordinateMap<V> extends HashMap<Integer, V> {
     private static final int ROW_MULTIPLIER = 7;
     private static final int COL_MULTIPLIER = 11;
 
-    public void putWithCoordinates(int row, int col, V value) {
+    public void putWithCoordinates(byte row, byte col, V value) {
         this.put(hashCoordinates(row, col), value);
     }
 
-    public V getWithCoordinates(int row, int col) {
+    public V getWithCoordinates(byte row, byte col) {
         return this.get(hashCoordinates(row, col));
     }
 
-    private int hashCoordinates(int row, int col) {
+    private int hashCoordinates(byte row, byte col) {
         return row * ROW_MULTIPLIER + col * COL_MULTIPLIER;
     }
 }
