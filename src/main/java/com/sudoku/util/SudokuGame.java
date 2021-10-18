@@ -31,7 +31,6 @@ public class SudokuGame {
 
     public SudokuGame(Difficulty difficulty) {
         generateNewGrid(difficulty);
-        storeSolvedGrid();
     }
 
     /**
@@ -215,6 +214,7 @@ public class SudokuGame {
         }
 
         grid = newGrid;
+        storeSolvedGrid();
     }
 
     private boolean isUnique(byte[][] grid) {
