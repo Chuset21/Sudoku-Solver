@@ -176,7 +176,7 @@ public class SudokuApplication extends Application {
                 hintButton.setDisable(true);
                 solveButton.setDisable(true);
                 newGridButton.setDisable(true);
-                emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
                 HINT_PAUSE.play();
             } else {
                 hintButton.setDisable(true);
@@ -218,6 +218,7 @@ public class SudokuApplication extends Application {
         if (validate && !newValue.isEmpty()) {
             final byte val = Byte.parseByte(newValue);
             textField.setEditable(false);
+            emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
             if (sudokuGame.isValueValid(val, col, row)) {
                 grid[row][col] = val;
                 emptyCellList.remove(new Tuple<>(row, col));
@@ -230,6 +231,7 @@ public class SudokuApplication extends Application {
                             b.setDisable(true);
                         }
                     }
+                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                 });
             } else {
                 textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
@@ -238,6 +240,7 @@ public class SudokuApplication extends Application {
                     textField.setBorder(Border.EMPTY);
                     textField.clear();
                     textField.setEditable(true);
+                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                 });
             }
             VALIDATOR_PAUSE.play();
