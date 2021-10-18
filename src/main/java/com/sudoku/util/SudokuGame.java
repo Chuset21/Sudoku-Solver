@@ -21,7 +21,7 @@ public class SudokuGame {
     private boolean isSolved;
 
     public static final byte GRID_BOUNDARY = 9;
-    private static final List<Byte> NUMBERS = new ArrayList<>(GRID_BOUNDARY);
+    public static final List<Byte> NUMBERS = new ArrayList<>(GRID_BOUNDARY);
 
     static {
         for (byte number = 1; number <= GRID_BOUNDARY; number++) {
@@ -72,7 +72,7 @@ public class SudokuGame {
         return Copy.deepCopy(grid);
     }
 
-    private Tuple<Byte> findEmpty(byte[][] grid, Tuple<Byte> lastPosition) {
+    public Tuple<Byte> findEmpty(byte[][] grid, Tuple<Byte> lastPosition) {
         for (byte i = lastPosition.row(); i < GRID_BOUNDARY; i++) {
             for (byte j = i == lastPosition.row() ? lastPosition.col() : 0; j < GRID_BOUNDARY; j++) {
                 if (grid[i][j] == 0) {
@@ -83,7 +83,7 @@ public class SudokuGame {
         return null;
     }
 
-    private boolean isValid(byte[][] grid, byte number, Tuple<Byte> position) {
+    public boolean isValid(byte[][] grid, byte number, Tuple<Byte> position) {
         // Check row
         for (byte i = 0; i < GRID_BOUNDARY; i++) {
             if (position.col() != i && grid[position.row()][i] == number) {
