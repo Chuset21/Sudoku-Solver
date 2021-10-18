@@ -213,9 +213,9 @@ public class SudokuApplication extends Application {
     }
 
     private void validate(TextField textField, String newValue, byte col, byte row, Button... buttons) {
-        final PauseTransition pause = new PauseTransition(Duration.seconds(PAUSE_DURATION));
-
         if (validate && !newValue.isEmpty()) {
+            final PauseTransition pause = new PauseTransition(Duration.seconds(PAUSE_DURATION));
+
             Arrays.stream(buttons).forEach(b -> b.setDisable(true));
             emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
 
