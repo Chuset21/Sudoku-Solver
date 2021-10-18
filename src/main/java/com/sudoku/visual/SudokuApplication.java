@@ -21,6 +21,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Stack;
 
@@ -35,7 +36,6 @@ public class SudokuApplication extends Application {
     private static final CoordinateMap<TextField> COORDINATE_MAP = new CoordinateMap<>();
 
     private static final char PAUSE_DURATION = 1;
-    private static final PauseTransition VALIDATOR_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
     private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
     private final Stack<Tuple<Byte>> emptyCellList = new Stack<>();
@@ -95,7 +95,7 @@ public class SudokuApplication extends Application {
         setMenuItemDifficulty(hard, SudokuGame.Difficulty.HARD, solveButton, hintButton);
         setMenuItemDifficulty(veryHard, SudokuGame.Difficulty.VERY_HARD, solveButton, hintButton);
 
-        createNewGrid(solveButton, hintButton);
+        createNewGrid(solveButton, hintButton, solveButton);
 
         final Scene scene = new Scene(board);
         scene.getStylesheets().add("sudoku.css");
@@ -121,9 +121,7 @@ public class SudokuApplication extends Application {
     }
 
     private void createNewGrid(Button... buttons) {
-        for (Button b : buttons) {
-            b.setDisable(false);
-        }
+        Arrays.stream(buttons).forEach(b -> b.setDisable(false));
 
         validate = false;
         emptyCellList.clear();
@@ -215,35 +213,40 @@ public class SudokuApplication extends Application {
     }
 
     private void validate(TextField textField, String newValue, byte col, byte row, Button... buttons) {
+        final PauseTransition pause = new PauseTransition(Duration.seconds(PAUSE_DURATION));
+
         if (validate && !newValue.isEmpty()) {
+            Arrays.stream(buttons).forEach(b -> b.setDisable(true));
+            emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
+
             final byte val = Byte.parseByte(newValue);
             textField.setEditable(false);
-            emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
             if (sudokuGame.isValueValid(val, col, row)) {
                 grid[row][col] = val;
                 emptyCellList.remove(new Tuple<>(row, col));
                 textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
-                VALIDATOR_PAUSE.setOnFinished(event -> {
+                pause.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
-                    if (sudokuGame.isSolved()) {
-                        for (Button b : buttons) {
-                            b.setDisable(true);
-                        }
-                    }
                     emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                    if (sudokuGame.isSolved()) {
+                        Arrays.stream(buttons).forEach(b -> b.setDisable(true));
+                    } else {
+                        Arrays.stream(buttons).forEach(b -> b.setDisable(false));
+                    }
                 });
             } else {
                 textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
-                VALIDATOR_PAUSE.setOnFinished(event -> {
+                pause.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
                     textField.clear();
                     textField.setEditable(true);
                     emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                    Arrays.stream(buttons).forEach(b -> b.setDisable(false));
                 });
             }
-            VALIDATOR_PAUSE.play();
+            pause.play();
         }
     }
 
