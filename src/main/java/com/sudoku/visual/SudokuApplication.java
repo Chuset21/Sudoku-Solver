@@ -26,8 +26,8 @@ import java.util.Collections;
 import java.util.Stack;
 
 public class SudokuApplication extends Application {
-    private static final double MIN_SLIDER = 100;
-    private static final double MAX_SLIDER = 200;
+    private static final double MIN_SLIDER = 0.4;
+    private static final double MAX_SLIDER = 2;
     private static final int MIN_WIN_SIZE = 500;
     private static final int MAX_WIN_H = 1200;
     private static final int MAX_WIN_W = 1120;
@@ -38,6 +38,8 @@ public class SudokuApplication extends Application {
     private static final char PAUSE_DURATION = 1;
     private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
+    private double visualPauseDur = 1;
+    private boolean isBeingSolved = false;
     private final Stack<Tuple<Byte>> emptyCellList = new Stack<>();
     private final SudokuGame sudokuGame = new SudokuGame();
     private byte[][] grid;
@@ -89,6 +91,8 @@ public class SudokuApplication extends Application {
         GridPane.setHalignment(slider, HPos.CENTER);
         GridPane.setValignment(slider, VPos.CENTER);
         board.add(slider, SudokuGame.GRID_BOUNDARY / 3, SudokuGame.GRID_BOUNDARY + 1, 3, 1);
+        slider.valueProperty().addListener((observable, oldValue, newValue) ->
+                visualPauseDur = invertRange(newValue.doubleValue()));
 
         setMenuItemDifficulty(easy, SudokuGame.Difficulty.EASY, solveButton, hintButton);
         setMenuItemDifficulty(medium, SudokuGame.Difficulty.MEDIUM, solveButton, hintButton);
@@ -108,6 +112,10 @@ public class SudokuApplication extends Application {
         primaryStage.setTitle("Sudoku Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private double invertRange(double x) {
+        return MAX_SLIDER - x + MIN_SLIDER;
     }
 
     private void setMenuItemDifficulty(MenuItem menuItem, SudokuGame.Difficulty difficulty, Button... buttons) {
@@ -214,7 +222,8 @@ public class SudokuApplication extends Application {
 
     private void validate(TextField textField, String newValue, byte col, byte row, Button... buttons) {
         if (validate && !newValue.isEmpty()) {
-            final PauseTransition pause = new PauseTransition(Duration.seconds(PAUSE_DURATION));
+            final PauseTransition pause = new PauseTransition(Duration.seconds(isBeingSolved ?
+                    visualPauseDur : PAUSE_DURATION));
 
             Arrays.stream(buttons).forEach(b -> b.setDisable(true));
             emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
@@ -228,10 +237,10 @@ public class SudokuApplication extends Application {
                 pause.setOnFinished(event -> {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
-                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(!isBeingSolved));
                     if (sudokuGame.isSolved()) {
                         Arrays.stream(buttons).forEach(b -> b.setDisable(true));
-                    } else {
+                    } else if (!isBeingSolved) {
                         Arrays.stream(buttons).forEach(b -> b.setDisable(false));
                     }
                 });
@@ -241,9 +250,11 @@ public class SudokuApplication extends Application {
                     textField.setStyle("-fx-text-fill: black;");
                     textField.setBorder(Border.EMPTY);
                     textField.clear();
-                    textField.setEditable(true);
-                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
-                    Arrays.stream(buttons).forEach(b -> b.setDisable(false));
+                    if (!isBeingSolved) {
+                        textField.setEditable(true);
+                        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
+                        Arrays.stream(buttons).forEach(b -> b.setDisable(false));
+                    }
                 });
             }
             pause.play();
