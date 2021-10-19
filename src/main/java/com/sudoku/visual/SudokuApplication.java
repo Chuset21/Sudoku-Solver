@@ -5,6 +5,7 @@ import com.sudoku.util.SudokuGame;
 import com.sudoku.util.Tuple;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
@@ -118,6 +119,10 @@ public class SudokuApplication extends Application {
 
         primaryStage.setTitle("Sudoku Game");
         primaryStage.setScene(scene);
+        primaryStage.setOnCloseRequest(event -> {
+            Platform.exit();
+            System.exit(0);
+        });
         primaryStage.show();
     }
 
@@ -162,9 +167,8 @@ public class SudokuApplication extends Application {
         setDisableButtons(true);
         emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
 
-        Thread t = new Thread(this::solveGrid);
-        // This causes exceptions but it works
-        t.setDaemon(true); // So it stops once the application is closed
+        // This causes exceptions but it works???
+        final Thread t = new Thread(this::solveGrid);
         t.start();
 
 
