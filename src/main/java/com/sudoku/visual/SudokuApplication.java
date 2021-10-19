@@ -131,19 +131,11 @@ public class SudokuApplication extends Application {
         lastPosition = new Tuple<>((byte) 0, (byte) 0);
     }
 
-    private void solve() {
-        isBeingSolved = true;
-        resetLastPosition();
-        setDisableButtons(true);
-        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
-
-        final boolean result = solveGrid();
-        if (result) {
-            for (byte col = 0; col < GRID_BOUNDARY; col++) {
-                for (byte row = 0; row < GRID_BOUNDARY; row++) {
-                    COORDINATE_MAP.getWithCoordinates(row, col).
-                            setStyle("-fx-text-fill: green; -fx-border-color: green;");
-                }
+    private void playOnSolve() {
+        for (byte col = 0; col < GRID_BOUNDARY; col++) {
+            for (byte row = 0; row < GRID_BOUNDARY; row++) {
+                COORDINATE_MAP.getWithCoordinates(row, col).
+                        setStyle("-fx-text-fill: green; -fx-border-color: green;");
             }
         }
 
@@ -157,9 +149,22 @@ public class SudokuApplication extends Application {
                 }
             }
             newGridButton.setDisable(false);
+            solveButton.setDisable(true);
+            hintButton.setDisable(true);
             isBeingSolved = false;
         });
         pause.play();
+    }
+
+    private void solve() {
+        isBeingSolved = true;
+        resetLastPosition();
+        setDisableButtons(true);
+        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
+
+        solveGrid();
+
+        playOnSolve();
     }
 
     // TODO Add pauses
@@ -271,10 +276,13 @@ public class SudokuApplication extends Application {
 
                 setDisableButtons(true);
                 emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
-                HINT_PAUSE.play();
+                if (sudokuGame.isSolved()) {
+                    playOnSolve();
+                } else {
+                    HINT_PAUSE.play();
+                }
             } else {
-                hintButton.setDisable(true);
-                solveButton.setDisable(true);
+                playOnSolve();
             }
         });
     }
@@ -320,17 +328,18 @@ public class SudokuApplication extends Application {
             if (sudokuGame.isValueValid(val, col, row)) {
                 grid[row][col] = val;
                 emptyCellList.remove(new Tuple<>(row, col));
-                textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
-                pause.setOnFinished(event -> {
-                    textField.setStyle("-fx-text-fill: black;");
-                    textField.setBorder(Border.EMPTY);
-                    emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
-                    if (sudokuGame.isSolved()) {
-                        Arrays.stream(buttons).forEach(b -> b.setDisable(true));
-                    } else {
+                if (sudokuGame.isSolved()) {
+                    pause.setDuration(Duration.ZERO);
+                    playOnSolve();
+                } else {
+                    textField.setStyle("-fx-text-fill: green; -fx-border-color: green;");
+                    pause.setOnFinished(event -> {
+                        textField.setStyle("-fx-text-fill: black;");
+                        textField.setBorder(Border.EMPTY);
+                        emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                         Arrays.stream(buttons).forEach(b -> b.setDisable(false));
-                    }
-                });
+                    });
+                }
             } else {
                 textField.setStyle("-fx-text-fill: red; -fx-border-color: red;");
                 pause.setOnFinished(event -> {
