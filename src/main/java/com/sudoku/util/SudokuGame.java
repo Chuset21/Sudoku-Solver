@@ -58,9 +58,8 @@ public class SudokuGame {
     public boolean isSolved() {
         if (!isSolved) {
             isSolved = checkIfSolved();
-        } else {
-            System.out.println("Solved");
         }
+
         return isSolved;
     }
 
