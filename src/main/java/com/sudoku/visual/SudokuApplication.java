@@ -162,11 +162,13 @@ public class SudokuApplication extends Application {
         setDisableButtons(true);
         emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
 
-        new Thread(this::solveGrid).start();
+        Thread t = new Thread(this::solveGrid);
+        // This causes exceptions but it works
+        t.setDaemon(true); // So it stops once the application is closed
+        t.start();
 
-        while (!sudokuGame.isSolved()) {
-            // wait
-        }
+
+        // TODO: wait for thread to stop and then solve
         playOnSolve();
     }
 
@@ -258,7 +260,8 @@ public class SudokuApplication extends Application {
                     emptyCellList.add(new Tuple<>(row, col));
                 }
 
-                setUpValidation(current, col, row, buttons);
+                // TODO Uncomment
+//                setUpValidation(current, col, row, buttons);
             }
         }
         Collections.shuffle(emptyCellList);
