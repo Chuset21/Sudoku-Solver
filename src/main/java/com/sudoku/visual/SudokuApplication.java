@@ -40,7 +40,7 @@ public class SudokuApplication extends Application {
     private static final byte PAUSE_DURATION = 1;
     private static final PauseTransition HINT_PAUSE = new PauseTransition(Duration.seconds(PAUSE_DURATION));
 
-    private double visualPauseDur = 1;
+    private double visualPauseDur = (MAX_SLIDER + MIN_SLIDER) / 2;
     private boolean isBeingSolved = false;
     private Tuple<Byte> lastPosition;
     private final Stack<Tuple<Byte>> emptyCellList = new Stack<>();
@@ -162,8 +162,11 @@ public class SudokuApplication extends Application {
         setDisableButtons(true);
         emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
 
-        solveGrid();
+        new Thread(this::solveGrid).start();
 
+        while (!sudokuGame.isSolved()) {
+            // wait
+        }
         playOnSolve();
     }
 
@@ -188,6 +191,11 @@ public class SudokuApplication extends Application {
                 } else {
                     currentCell.setStyle("-fx-text-fill: red; -fx-border-color: red;");
                 }
+                try {
+                    Thread.sleep((long) (visualPauseDur * 1000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 //                pause.play();
 
                 if (solveGrid()) {
@@ -202,6 +210,12 @@ public class SudokuApplication extends Application {
                 lastPosition = position;
             } else {
                 currentCell.setText(String.valueOf(num));
+                try {
+                    Thread.sleep((long) (visualPauseDur * 200));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                currentCell.clear();
 //                pause.setDuration(Duration.seconds(visualPauseDur / 5));
 //                pause.setOnFinished(event -> currentCell.clear());
 //                pause.play();
