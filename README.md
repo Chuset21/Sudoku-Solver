@@ -19,3 +19,7 @@ wrecking my head :)
 ### <p align="center"> Application Showcase
 
 <img src="https://github.com/Chuset21/Sudoku-Solver/blob/main/showcase/sudoku.png"></p>
+
+### Download
+
+I will have a downloadable executable or something similar soon.
