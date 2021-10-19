@@ -121,16 +121,10 @@ public class SudokuApplication extends Application {
         primaryStage.show();
     }
 
-    private void enableButtons() {
-        newGridButton.setDisable(false);
-        solveButton.setDisable(false);
-        hintButton.setDisable(false);
-    }
-
-    private void disableButtons() {
-        newGridButton.setDisable(true);
-        solveButton.setDisable(true);
-        hintButton.setDisable(true);
+    private void setDisableButtons(boolean disable) {
+        newGridButton.setDisable(disable);
+        solveButton.setDisable(disable);
+        hintButton.setDisable(disable);
     }
 
     private void resetLastPosition() {
@@ -140,7 +134,7 @@ public class SudokuApplication extends Application {
     private void solve() {
         isBeingSolved = true;
         resetLastPosition();
-        disableButtons();
+        setDisableButtons(true);
         emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
 
         final boolean result = solveGrid();
@@ -162,7 +156,7 @@ public class SudokuApplication extends Application {
                     textField.setBorder(Border.EMPTY);
                 }
             }
-            enableButtons();
+            newGridButton.setDisable(false);
             isBeingSolved = false;
         });
         pause.play();
@@ -263,9 +257,7 @@ public class SudokuApplication extends Application {
 
     private void setupHintAction() {
         HINT_PAUSE.setOnFinished(event -> {
-            hintButton.setDisable(false);
-            solveButton.setDisable(false);
-            newGridButton.setDisable(false);
+            setDisableButtons(false);
             emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
         });
 
@@ -277,9 +269,7 @@ public class SudokuApplication extends Application {
                 grid[current.row()][current.col()] = value;
                 COORDINATE_MAP.getWithCoordinates(current.row(), current.col()).setText(String.valueOf(value));
 
-                hintButton.setDisable(true);
-                solveButton.setDisable(true);
-                newGridButton.setDisable(true);
+                setDisableButtons(true);
                 emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(false));
                 HINT_PAUSE.play();
             } else {
@@ -337,7 +327,7 @@ public class SudokuApplication extends Application {
                     emptyCellList.forEach(t -> COORDINATE_MAP.getWithCoordinates(t.row(), t.col()).setEditable(true));
                     if (sudokuGame.isSolved()) {
                         Arrays.stream(buttons).forEach(b -> b.setDisable(true));
-                    } else if (!isBeingSolved) {
+                    } else {
                         Arrays.stream(buttons).forEach(b -> b.setDisable(false));
                     }
                 });
