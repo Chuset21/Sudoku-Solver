@@ -184,7 +184,12 @@ public class SudokuApplication extends Application {
         lastPosition = position;
         final TextField currentCell = COORDINATE_MAP.getWithCoordinates(lastPosition.row(), lastPosition.col());
         for (byte i = 0; i < GRID_BOUNDARY; i++) {
-            // If it's hard or very hard it will basically cheat
+            /*
+             If it's hard or very hard it will basically cheat by using an optimised order of numbers [1-9]
+             that was created when generating the sudoku grid.
+             This is only done so that the user isn't forced to close the application when the solving
+             algorithm starts to be painfully slow.
+             */
             final byte num = isCurrentHard ? SudokuGame.NUMBERS.get(i) : NUMBERS[i];
             if (sudokuGame.isValid(grid, num, position)) {
                 grid[position.row()][position.col()] = num;
