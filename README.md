@@ -16,6 +16,6 @@ This can cause the application to crash.
 This is quite rare but possible, if this happens, close the application and open it again, best I can do without
 wrecking my head :)
 
-### Application Showcase
+### <p align="center"> Application Showcase
 
-![Sudoku Application Picture](https://github.com/Chuset21/Sudoku-Solver/blob/main/showcase/sudoku.png?raw=true)
+<img src="https://github.com/Chuset21/Sudoku-Solver/blob/main/showcase/sudoku.png"></p>
