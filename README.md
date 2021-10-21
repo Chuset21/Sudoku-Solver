@@ -11,15 +11,8 @@ This is still the main feature. Features include:
 
 ## <p align="center"> Application Showcase
 
-<img src="https://github.com/Chuset21/Sudoku-Solver/blob/main/showcase/sudoku.png"></p>
+<img src="https://github.com/Chuset21/Sudoku-Solver/blob/main/showcase/sudoku_demo.gif"></p>
 
 ## Download
 
-I will have a downloadable executable or something similar soon.
-
-### Issues
-
-The solving algorithm when visualised uses a new thread, which to my knowledge in JavaFX is not a good idea.  
-This can cause the application to crash.  
-This is quite rare but possible, if this happens, close the application and open it again, best I can do without
-wrecking my head :)
+I might add a downloadable executable or something similar at some point.
