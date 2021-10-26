@@ -22,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Stack;
 
@@ -170,7 +171,7 @@ public class SudokuApplication extends Application {
 
         // Threads can cause exceptions and, to be completely honest, they are beyond me at this point
         new Thread(() -> {
-            solveGrid();
+            solveGridIteratively();
             playOnSolve();
         }).start();
     }
@@ -191,10 +192,10 @@ public class SudokuApplication extends Application {
              algorithm starts to be painfully slow.
              */
             final byte num = isCurrentHard ? SudokuGame.NUMBERS.get(i) : NUMBERS[i];
+            currentCell.setText(String.valueOf(num));
             if (sudokuGame.isValid(grid, num, position)) {
                 grid[position.row()][position.col()] = num;
 
-                currentCell.setText(String.valueOf(num));
                 if (sudokuGame.isValueValid(num, position.col(), position.row())) {
                     currentCell.setStyle("-fx-text-fill: green; -fx-border-color: green;");
                 } else {
@@ -218,7 +219,6 @@ public class SudokuApplication extends Application {
                 grid[position.row()][position.col()] = 0;
                 lastPosition = position;
             } else {
-                currentCell.setText(String.valueOf(num));
 
                 try {
                     Thread.sleep(visualPauseDur / 5);
@@ -231,6 +231,65 @@ public class SudokuApplication extends Application {
         }
 
         return false;
+    }
+
+    private void solveGridIteratively() {
+        final Stack<AbstractMap.SimpleEntry<Tuple<Byte>, Byte>> positions = new Stack<>();
+
+        boolean isValid = false;
+        byte currentIndex = 0;
+        Tuple<Byte> position = sudokuGame.findEmpty(grid, lastPosition);
+        while (!isValid || (position = sudokuGame.findEmpty(grid, lastPosition)) != null) {
+            lastPosition = position;
+            final TextField currentCell = COORDINATE_MAP.getWithCoordinates(lastPosition.row(), lastPosition.col());
+
+            isValid = false;
+            for (byte i = currentIndex; i < GRID_BOUNDARY && !isValid; i++) {
+                final byte num = isCurrentHard ? SudokuGame.NUMBERS.get(i) : NUMBERS[i];
+
+                currentCell.setText(String.valueOf(num));
+                if (sudokuGame.isValid(grid, num, position)) {
+                    currentIndex = 0;
+
+                    grid[position.row()][position.col()] = num;
+
+                    isValid = true;
+                    positions.add(new AbstractMap.SimpleEntry<>(position, (byte) (i + 1)));
+
+                    if (sudokuGame.isValueValid(num, position.col(), position.row())) {
+                        currentCell.setStyle("-fx-text-fill: green; -fx-border-color: green;");
+                    } else {
+                        currentCell.setStyle("-fx-text-fill: red; -fx-border-color: red;");
+                    }
+
+                    try {
+                        Thread.sleep(visualPauseDur);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        Thread.sleep(visualPauseDur / 5);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    currentCell.clear();
+                }
+            }
+
+            if (!isValid) {
+                final AbstractMap.SimpleEntry<Tuple<Byte>, Byte> prev = positions.pop();
+                position = prev.getKey();
+                currentIndex = prev.getValue();
+
+                final TextField cell = COORDINATE_MAP.getWithCoordinates(position.row(), position.col());
+                cell.clear();
+                cell.setStyle("-fx-text-fill: black;");
+                cell.setBorder(Border.EMPTY);
+                grid[position.row()][position.col()] = 0;
+            }
+        }
     }
 
     private long invertRange(long x) {
